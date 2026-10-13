@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { Icon } from '../components/Icon'
 import { Avatar } from '../components/ui'
 import { db } from '../lib/db'
+import { carregarExemplos } from '../lib/exemplos'
 import { f0, normalizar, totaisPlano } from '../lib/nutri'
 
 export default function Pacientes() {
@@ -56,6 +57,7 @@ export default function Pacientes() {
             <span style={{ fontWeight: 700, fontSize: 16 }}>Nenhum paciente ainda</span>
             <span className="muted" style={{ fontSize: 14 }}>Cadastre o primeiro paciente para montar a dieta, registrar a avaliação física e as fórmulas manipuladas.</span>
             <Link className="btn primary" to="/paciente/novo">Cadastrar paciente</Link>
+            <button type="button" className="link-btn" onClick={() => carregarExemplos()}>Ou carregar 2 pacientes de exemplo</button>
           </div>
         )}
         {lista.map(({ p, nItens, kcal, ultimaAv }) => (

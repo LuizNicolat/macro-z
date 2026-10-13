@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { TopBar } from '../components/ui'
 import { Icon } from '../components/Icon'
 import { exportarBackup, importarBackup } from '../lib/db'
+import { carregarExemplos, removerExemplos } from '../lib/exemplos'
 import { FONTE_TACO } from '../lib/taco'
 
 export default function Ajustes() {
@@ -39,6 +40,15 @@ export default function Ajustes() {
         <button type="button" className="btn" onClick={() => arquivo.current?.click()}>Importar backup</button>
         <input ref={arquivo} type="file" accept="application/json,.json" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) restaurar(f); e.target.value = '' }} />
         {msg && <div className={msg.ok ? 'note ok' : 'note warn'} role="status"><Icon n={msg.ok ? 'ok' : 'info'} size={18} /><span>{msg.texto}</span></div>}
+      </section>
+      <section className="card">
+        <h2 className="sec">Exemplos</h2>
+        <span style={{ fontSize: 14, lineHeight: 1.5 }}>Cria dois pacientes fictícios (Ana Ribeiro e Bruno Tavares) com avaliação, plano completo e manipulados, para conhecer o app. Carregar de novo restaura os exemplos ao estado original.</span>
+        <button type="button" className="btn primary" onClick={async () => { await carregarExemplos(); setMsg({ ok: true, texto: 'Pacientes de exemplo carregados.' }) }}>Carregar pacientes de exemplo</button>
+        <button type="button" className="btn" onClick={async () => {
+          if (!window.confirm('Remover os pacientes de exemplo? Seus pacientes reais não são afetados.')) return
+          await removerExemplos(); setMsg({ ok: true, texto: 'Pacientes de exemplo removidos.' })
+        }}>Remover exemplos</button>
       </section>
       <section className="card">
         <h2 className="sec">Sobre</h2>
