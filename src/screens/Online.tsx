@@ -41,11 +41,11 @@ export default function Online() {
 
   const importar = (p: ProdutoOFF) => {
     const qs = new URLSearchParams()
-    if (pid && rid) { qs.set('p', pid); qs.set('r', rid) }
+    if (pid && rid) { qs.set('p', pid); qs.set('r', rid); if (sp.get('op')) qs.set('op', sp.get('op')!) }
     nav(`/alimentos/novo?${qs}`, { state: { off: p } })
   }
 
-  const linkCadastro = `/alimentos/novo?${new URLSearchParams({ ...(pid && rid ? { p: pid, r: rid } : {}), nome: termo })}`
+  const linkCadastro = `/alimentos/novo?${new URLSearchParams({ ...(pid && rid ? { p: pid, r: rid, ...(sp.get('op') ? { op: sp.get('op')! } : {}) } : {}), nome: termo })}`
 
   return (
     <main className="page">

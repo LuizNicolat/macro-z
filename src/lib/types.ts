@@ -25,6 +25,15 @@ export type Alimento = {
   marca?: string
 }
 
+/** Substituição "OU" de um item. Sem `por100`, é só texto (alimento fora da base). */
+export type Alternativa = {
+  nome: string
+  gramas: number | null
+  medida?: string
+  ref?: string
+  por100?: Nutrientes
+}
+
 export type Item = {
   id: string
   ref: string
@@ -33,9 +42,35 @@ export type Item = {
   /** Cópia dos valores no momento em que o alimento entrou no plano. */
   por100: Nutrientes
   gramas: number
+  /** Medida caseira mostrada ao paciente, ex.: "2 fatias", "3 un". */
+  medida?: string
+  obs?: string
+  alternativas?: Alternativa[]
 }
 
-export type Refeicao = { id: string; nome: string; horario: string; itens: Item[] }
+/** Versão alternativa inteira de uma refeição (ex.: "Opção 2" do café da manhã). */
+export type OpcaoRefeicao = { id: string; nome: string; itens: Item[] }
+
+export type Refeicao = {
+  id: string
+  nome: string
+  horario: string
+  /** Itens da opção 1 — é ela que entra nos totais do plano. */
+  itens: Item[]
+  obs?: string
+  opcoes?: OpcaoRefeicao[]
+}
+
+/** O que o paciente marcou como feito num dia. */
+export type Diario = {
+  id: string
+  pacienteId: string
+  data: string
+  /** id da refeição → índice da opção consumida (0 = opção 1). */
+  refeicoes: Record<string, number>
+  /** ids das fórmulas tomadas. */
+  formulas: string[]
+}
 
 export type Meta = { kcal: number; p: number; c: number; g: number; fibra: number }
 

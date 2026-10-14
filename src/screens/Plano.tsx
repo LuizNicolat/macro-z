@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Icon } from '../components/Icon'
 import { Avatar, BarraMeta, CampoNumero, Carregando, Donut, Legenda, MacroLinha, Sheet, TopBar } from '../components/ui'
-import { alterarPlano, lembrarPaciente, uid } from '../lib/db'
+import { alterarPlano, baixarJson, exportarPaciente, lembrarPaciente, slug, uid } from '../lib/db'
 import { useAvaliacoes, useFormulas, usePaciente, usePlano } from '../lib/hooks'
 import { f0, f1, fa, idadeEm, lerNumero, numParaCampo, totaisPlano, totaisRefeicao } from '../lib/nutri'
 import type { Meta } from '../lib/types'
@@ -104,6 +104,7 @@ export default function Plano() {
                 <span style={{ fontWeight: 700, display: 'flex', gap: 6, alignItems: 'center' }}>
                   {r.nome}
                   {r.itens.some((i) => i.fonte === 'propria') && <span className="badge manual">MANUAL</span>}
+                  {(r.opcoes?.length ?? 0) > 0 && <span className="badge">{(r.opcoes?.length ?? 0) + 1} OPÇÕES</span>}
                 </span>
                 <span className="muted" style={{ fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {r.itens.length ? r.itens.map((i) => i.nome.split(',')[0]).join(', ') : 'Toque para adicionar alimentos'}
@@ -141,6 +142,17 @@ export default function Plano() {
         <label htmlFor="obs" className="sr-only">Observações do plano</label>
         <textarea id="obs" className="input" placeholder="Orientações, trocas permitidas, hidratação…" value={obsAtual}
           onChange={(e) => setObs(e.target.value)} onBlur={salvarObs} />
+      </section>
+
+      <section className="card" aria-labelledby="t-pac" style={{ gap: 10 }}>
+        <h2 id="t-pac" className="sec">Para o paciente</h2>
+        <span className="muted" style={{ fontSize: 13, lineHeight: 1.5 }}>O paciente importa o arquivo no Macro Z do celular dele (Ajustes → Importar) e o app abre direto na dieta, com as refeições do dia para marcar.</span>
+        <div className="grid2">
+          <Link className="btn" to={`/u/${pid}`}><Icon n="usuario" size={18} />Ver como paciente</Link>
+          <button type="button" className="btn primary" onClick={async () => baixarJson(await exportarPaciente(pid), `dieta-${slug(paciente.nome)}.json`)}>
+            <Icon n="baixar" size={18} />Arquivo da dieta
+          </button>
+        </div>
       </section>
 
       <div className="grid2">

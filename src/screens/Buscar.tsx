@@ -4,7 +4,7 @@ import { Icon } from '../components/Icon'
 import { CampoNumero, Sheet, TopBar, useToast } from '../components/ui'
 import { alterarPlano, uid } from '../lib/db'
 import { useAlimentos, usePlano } from '../lib/hooks'
-import { buscarAlimentos, f0, f1, fa, lerNumero, paraGramas, semDados } from '../lib/nutri'
+import { buscarAlimentos, f0, f1, fa, itensOpcao, lerNumero, paraGramas, semDados } from '../lib/nutri'
 import { FILTROS, idTaco } from '../lib/taco'
 import type { Alimento } from '../lib/types'
 
@@ -20,6 +20,8 @@ export default function Buscar() {
   const todos = useAlimentos()
   const [sp, setSp] = useSearchParams()
   const q = sp.get('q') ?? ''
+  const op = Number(sp.get('op') ?? 0) || 0
+  const opQs = op ? `&op=${op}` : ''
   const [filtro, setFiltro] = useState(0)
   const [sel, setSel] = useState<Alimento | null>(null)
   const toast = useToast()
@@ -31,9 +33,9 @@ export default function Buscar() {
     return buscarAlimentos(base, q, 100)
   }, [todos, q, filtro])
 
-  const voltar = modoRefeicao ? `/p/${pid}/r/${rid}` : undefined
-  const linkOnline = modoRefeicao ? `/p/${pid}/r/${rid}/online?q=${encodeURIComponent(q)}` : `/alimentos/online?q=${encodeURIComponent(q)}`
-  const linkCadastro = modoRefeicao ? `/alimentos/novo?p=${pid}&r=${rid}&nome=${encodeURIComponent(q)}` : `/alimentos/novo?nome=${encodeURIComponent(q)}`
+  const voltar = modoRefeicao ? `/p/${pid}/r/${rid}${op ? `?op=${op}` : ''}` : undefined
+  const linkOnline = modoRefeicao ? `/p/${pid}/r/${rid}/online?q=${encodeURIComponent(q)}${opQs}` : `/alimentos/online?q=${encodeURIComponent(q)}`
+  const linkCadastro = modoRefeicao ? `/alimentos/novo?p=${pid}&r=${rid}${opQs}&nome=${encodeURIComponent(q)}` : `/alimentos/novo?nome=${encodeURIComponent(q)}`
 
   return (
     <main className="page">
@@ -45,7 +47,7 @@ export default function Buscar() {
         <label htmlFor="q" className="sr-only">Buscar alimento</label>
         <Icon n="busca" size={18} />
         <input id="q" className="input" type="search" autoComplete="off" autoFocus placeholder="Ex.: frango, arroz, whey" value={q}
-          onChange={(e) => setSp(e.target.value ? { q: e.target.value } : {}, { replace: true })} style={{ borderWidth: 2, borderColor: 'var(--brand)' }} />
+          onChange={(e) => setSp({ ...(e.target.value ? { q: e.target.value } : {}), ...(op ? { op: String(op) } : {}) }, { replace: true })} style={{ borderWidth: 2, borderColor: 'var(--brand)' }} />
       </div>
 
       <div className="chips" role="group" aria-label="Filtrar por categoria">
@@ -103,7 +105,8 @@ export default function Buscar() {
       {sel && (modoRefeicao
         ? <AdicionarSheet a={sel} aoFechar={() => setSel(null)} aoAdicionar={(gramas) => {
             alterarPlano(pid!, (p) => {
-              p.refeicoes.find((r) => r.id === rid)?.itens.push({ id: uid(), ref: sel.ref, nome: sel.nome, fonte: sel.fonte, por100: sel.por100, gramas })
+              const ref = p.refeicoes.find((r) => r.id === rid)
+              if (ref) itensOpcao(ref, op).push({ id: uid(), ref: sel.ref, nome: sel.nome, fonte: sel.fonte, por100: sel.por100, gramas })
             })
             toast.mostrar(`${sel.nome.split(',')[0]} · ${fa(gramas)} g no ${refeicao?.nome ?? 'plano'}`)
             setSel(null)

@@ -3,7 +3,8 @@ import { Link, useParams } from 'react-router-dom'
 import { Icon } from '../components/Icon'
 import { Carregando } from '../components/ui'
 import { useAvaliacoes, useFormulas, usePaciente, usePlano } from '../lib/hooks'
-import { distribuicao, f0, f1, fa, idadeEm, paraGramas, pct, totaisPlano, totaisRefeicao } from '../lib/nutri'
+import { modoApp } from '../lib/db'
+import { distribuicao, f0, f1, fa, idadeEm, opcoesDe, paraGramas, pct, quantidade, totaisItens, totaisPlano, totaisRefeicao } from '../lib/nutri'
 import { FONTE_TACO } from '../lib/taco'
 
 /** Versão para imprimir ou salvar como PDF (pelo diálogo de impressão do navegador). */
@@ -32,7 +33,7 @@ export default function Imprimir() {
   return (
     <>
       <div className="no-print" style={{ maxWidth: 800, margin: '0 auto', padding: '16px 20px', display: 'flex', gap: 10, justifyContent: 'space-between' }}>
-        <Link className="btn sm" to={`/p/${pid}`}><Icon n="voltar" size={18} />Voltar</Link>
+        <Link className="btn sm" to={modoApp().tipo === 'paciente' ? `/u/${pid}/orientacoes` : `/p/${pid}`}><Icon n="voltar" size={18} />Voltar</Link>
         <button type="button" className="btn primary sm" onClick={() => window.print()}><Icon n="baixar" size={18} />Imprimir / salvar PDF</button>
       </div>
       <article className="print">
@@ -61,13 +62,32 @@ export default function Imprimir() {
         <table>
           <thead><tr><th>Alimento</th><th className="n">Qtd.</th><th className="n">kcal</th><th className="n">P</th><th className="n">C</th><th className="n">G</th></tr></thead>
           {refeicoes.map((r) => {
+            const ops = opcoesDe(r).filter((o) => o.itens.length)
             const tr = totaisRefeicao(r)
             return (
               <tbody key={r.id}>
                 <tr className="meal-h"><td>{r.horario} · {r.nome}</td><td></td><td className="n">{f0(tr.kcal)}</td><td className="n">{f1(tr.p)}</td><td className="n">{f1(tr.c)}</td><td className="n">{f1(tr.g)}</td></tr>
-                {r.itens.map((i) => {
-                  const ti = paraGramas(i.por100, i.gramas)
-                  return <tr key={i.id}><td>{i.nome}</td><td className="n">{fa(i.gramas)} g</td><td className="n">{f0(ti.kcal)}</td><td className="n">{f1(ti.p)}</td><td className="n">{f1(ti.c)}</td><td className="n">{f1(ti.g)}</td></tr>
+                {r.obs && <tr><td colSpan={6} style={{ fontStyle: 'italic', color: '#444' }}>{r.obs}</td></tr>}
+                {ops.map((o, k) => {
+                  const to = totaisItens(o.itens)
+                  return [
+                    ops.length > 1 && (
+                      <tr key={`h${k}`}><td style={{ fontWeight: 700, paddingTop: 10 }}>{o.nome}</td><td></td><td className="n" style={{ color: '#555' }}>{f0(to.kcal)}</td><td className="n" style={{ color: '#555' }}>{f1(to.p)}</td><td className="n" style={{ color: '#555' }}>{f1(to.c)}</td><td className="n" style={{ color: '#555' }}>{f1(to.g)}</td></tr>
+                    ),
+                    ...o.itens.map((i) => {
+                      const ti = paraGramas(i.por100, i.gramas)
+                      const alts = i.alternativas ?? []
+                      return (
+                        <tr key={i.id}>
+                          <td>
+                            {i.nome}{i.obs ? <span style={{ color: '#555' }}> — {i.obs}</span> : null}
+                            {alts.length > 0 && <div style={{ color: '#555', fontSize: '0.9em', marginTop: 2 }}>ou {alts.map((a) => `${a.nome}${quantidade(a.gramas, a.medida) ? ` (${quantidade(a.gramas, a.medida)})` : ''}`).join('; ')}</div>}
+                          </td>
+                          <td className="n">{quantidade(i.gramas, i.medida)}</td><td className="n">{f0(ti.kcal)}</td><td className="n">{f1(ti.p)}</td><td className="n">{f1(ti.c)}</td><td className="n">{f1(ti.g)}</td>
+                        </tr>
+                      )
+                    }),
+                  ]
                 })}
               </tbody>
             )
@@ -100,7 +120,7 @@ export default function Imprimir() {
           </>
         )}
 
-        <p style={{ marginTop: 24, fontSize: 10, color: '#666' }}>Valores nutricionais: {FONTE_TACO}; alimentos fora da tabela conforme rótulo ou cadastro do profissional.</p>
+        <p style={{ marginTop: 24, fontSize: 10, color: '#666' }}>Valores nutricionais: {FONTE_TACO}; alimentos fora da tabela conforme rótulo ou cadastro do profissional.{refeicoes.some((r) => r.opcoes?.length) ? ' Os totais do dia consideram a opção 1 de cada refeição.' : ''}</p>
       </article>
     </>
   )

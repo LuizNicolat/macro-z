@@ -1,4 +1,4 @@
-import type { Alimento, Meta, Nutrientes, Plano, Refeicao, Sexo, Totais } from './types'
+import type { Alimento, Item, Meta, Nutrientes, Plano, Refeicao, Sexo, Totais } from './types'
 
 export const ZERO: Totais = { kcal: 0, p: 0, c: 0, g: 0, fibra: 0, sodio: 0 }
 
@@ -24,7 +24,33 @@ export function somar(lista: Totais[]): Totais {
   )
 }
 
-export const totaisRefeicao = (r: Refeicao) => somar(r.itens.map((i) => paraGramas(i.por100, i.gramas)))
+export const totaisItens = (itens: Item[]) => somar(itens.map((i) => paraGramas(i.por100, i.gramas)))
+/** Totais da opção 1 (a principal) da refeição. */
+export const totaisRefeicao = (r: Refeicao) => totaisItens(r.itens)
+
+/** Todas as versões da refeição: a principal ("Opção 1") seguida das alternativas. */
+export function opcoesDe(r: Refeicao): { nome: string; itens: Item[] }[] {
+  const extras = r.opcoes ?? []
+  if (!extras.length) return [{ nome: 'Opção 1', itens: r.itens }]
+  return [{ nome: 'Opção 1', itens: r.itens }, ...extras.map((o, i) => ({ nome: o.nome || `Opção ${i + 2}`, itens: o.itens }))]
+}
+
+/** Itens da opção `op` (0 = principal). Devolve a própria lista, para editar dentro de alterarPlano. */
+export function itensOpcao(r: Refeicao, op: number): Item[] {
+  return op === 0 ? r.itens : (r.opcoes?.[op - 1]?.itens ?? [])
+}
+
+export function definirItensOpcao(r: Refeicao, op: number, itens: Item[]) {
+  if (op === 0) r.itens = itens
+  else if (r.opcoes?.[op - 1]) r.opcoes[op - 1].itens = itens
+}
+
+/** Texto curto da quantidade: "50 g (2 fatias)" ou só "2 fatias" quando não há gramas. */
+export function quantidade(gramas: number | null | undefined, medida?: string) {
+  const g = gramas ? `${fa(gramas)} g` : ''
+  if (g && medida) return `${g} (${medida})`
+  return g || medida || ''
+}
 export const totaisPlano = (p: Plano) => somar(p.refeicoes.map(totaisRefeicao))
 
 /** Energia estimada pelos fatores de Atwater (4/4/9). */

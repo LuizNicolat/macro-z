@@ -97,12 +97,13 @@ export async function carregarExemplos() {
 }
 
 export async function removerExemplos() {
-  await db.transaction('rw', [db.pacientes, db.planos, db.avaliacoes, db.formulas, db.alimentos], async () => {
+  await db.transaction('rw', [db.pacientes, db.planos, db.avaliacoes, db.formulas, db.alimentos, db.diario], async () => {
     for (const id of Object.values(IDS)) {
       await db.pacientes.delete(id)
       await db.planos.delete(id)
       await db.avaliacoes.where('pacienteId').equals(id).delete()
       await db.formulas.where('pacienteId').equals(id).delete()
+      await db.diario.where('pacienteId').equals(id).delete()
     }
     await db.alimentos.delete(WHEY_ID)
   })

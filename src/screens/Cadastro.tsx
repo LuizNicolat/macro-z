@@ -5,7 +5,7 @@ import { Icon } from '../components/Icon'
 import { CampoNumero, TopBar } from '../components/ui'
 import { agora, alterarPlano, db, uid } from '../lib/db'
 import { proprioParaAlimento } from '../lib/hooks'
-import { f1, fa, f0, kcalPorMacros, lerNumero, numParaCampo } from '../lib/nutri'
+import { f1, fa, f0, itensOpcao, kcalPorMacros, lerNumero, numParaCampo } from '../lib/nutri'
 import type { ProdutoOFF } from '../lib/off'
 import type { AlimentoProprio, FonteProprio, Nutrientes } from '../lib/types'
 
@@ -34,7 +34,7 @@ export default function Cadastro() {
   const [sp] = useSearchParams()
   const { state } = useLocation() as { state: { off?: ProdutoOFF } | null }
   const nav = useNavigate()
-  const pid = sp.get('p'), rid = sp.get('r')
+  const pid = sp.get('p'), rid = sp.get('r'), op = Number(sp.get('op') ?? 0) || 0
   const existente = useLiveQuery(() => (id ? db.alimentos.get(id) : undefined), [id])
   const [f, setF] = useState<Campos>(() => {
     const off = state?.off
@@ -76,9 +76,10 @@ export default function Cadastro() {
     if (reutilizar || id) await db.alimentos.put(reg)
     if (pid && rid) {
       await alterarPlano(pid, (p) => {
-        p.refeicoes.find((r) => r.id === rid)?.itens.push({ id: uid(), ref: alimento.ref, nome: alimento.nome, fonte: 'propria', por100, gramas: porcao })
+        const ref = p.refeicoes.find((r) => r.id === rid)
+        if (ref) itensOpcao(ref, op).push({ id: uid(), ref: alimento.ref, nome: alimento.nome, fonte: 'propria', por100, gramas: porcao })
       })
-      nav(`/p/${pid}/r/${rid}`)
+      nav(`/p/${pid}/r/${rid}${op ? `?op=${op}` : ''}`)
     } else {
       nav(`/alimentos?q=${encodeURIComponent(reg.nome)}`)
     }

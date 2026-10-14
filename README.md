@@ -19,6 +19,8 @@ App para montar planos alimentares usando a **TACO** (Tabela Brasileira de Compo
 - **Manipulados**: fórmulas com ativos e doses, posologia, horário, duração, farmácia e status, além da rotina do dia.
 - **Observações** do plano, com opção de mostrar ou não no PDF.
 - **PDF**: página de impressão com resumo, refeições, manipulados e observações.
+- **Opções e substituições**: cada refeição pode ter várias opções (Opção 1, 2, 3…) e cada alimento uma lista de substituições "OU", com quantidades equivalentes calculadas pela troca.
+- **Visão do paciente**: tela "Hoje" com as refeições do dia para marcar como feitas (escolhendo a opção que fez), suplementos do dia para marcar e orientações. O profissional gera o **arquivo da dieta** no plano; o paciente importa em Ajustes e o app abre direto na visão dele.
 - **Backup**: exportar e importar todos os dados em JSON (Ajustes).
 
 Os dados ficam salvos **só no aparelho**, no IndexedDB do navegador. Não há servidor nem login.
